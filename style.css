@@ -181,3 +181,14 @@ footer {
     .btn { width: 100%; }
     .download-buttons { flex-direction: column; width: 100%; }
 }
+
+/* 真实图片的样式 */
+.preview-img {
+    width: 100%;
+    max-width: 600px; /* 手机端截图不要太大，限制一下最大宽度 */
+    border-radius: 16px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    display: block;
+    margin: 0 auto; /* 居中 */
+}
