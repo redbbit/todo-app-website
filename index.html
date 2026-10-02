@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TodoApp | 极简任务清单</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- 引入 Google 字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="logo">TodoApp</div>
+        <div class="nav-right">
+            <a href="https://redbbit.github.io" class="nav-back">← 返回个人主页</a>
+            <a href="#download" class="btn btn-primary btn-small">立即下载</a>
+        </div>
+    </nav>
+
+    <!-- 1. Hero 区 -->
+    <section id="hero" class="hero fade-in">
+        <div class="hero-content">
+            <div class="app-icon-placeholder">✅</div>
+            <h1 class="hero-title">把任务交给清单，把时间留给自己</h1>
+            <p class="hero-subtitle">极简、高效、跨平台的任务管理工具。支持手机与电脑实时同步。</p>
+            <p class="hero-tagline">唯一优点是：<strong>没广告</strong>。</p>
+            <div class="hero-buttons">
+                <a href="#download" class="btn btn-primary">开始使用</a>
+                <a href="#features" class="btn btn-outline">了解更多</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. 核心特性 -->
+    <section id="features" class="section fade-in">
+        <h2 class="section-title">为什么选择 TodoApp？</h2>
+        <div class="grid-3">
+            <div class="card feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>跨平台同步</h3>
+                <p>基于 Flutter 构建，支持 Android、iOS、Windows、macOS。随时随地，无缝切换。</p>
+            </div>
+            <div class="card feature-card">
+                <div class="feature-icon">🚫</div>
+                <h3>绝对无广告</h3>
+                <p>专注任务本身，没有任何弹窗、横幅或推荐。还你一个干净的清单。</p>
+            </div>
+            <div class="card feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>极速轻量</h3>
+                <p>启动迅速，体积小巧。不占用系统资源，帮你快速记录每一个待办事项。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. 界面预览 -->
+    <section id="preview" class="section fade-in">
+        <h2 class="section-title">简洁优雅的界面</h2>
+        <div class="preview-grid">
+            <div class="preview-item">
+                <div class="preview-placeholder" style="background-color: #2a2a2a;">手机端截图占位</div>
+                <p>移动端体验</p>
+            </div>
+            <div class="preview-item">
+                <div class="preview-placeholder" style="background-color: #333333;">电脑端截图占位</div>
+                <p>桌面端体验</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. 下载区 -->
+    <section id="download" class="section fade-in">
+        <h2 class="section-title">立即下载</h2>
+        <p class="download-desc">选择你的设备，开始高效管理任务。</p>
+        <div class="download-buttons">
+            <a href="#" class="btn btn-download">
+                <span class="platform-icon">🤖</span> Android 下载
+            </a>
+            <a href="#" class="btn btn-download">
+                <span class="platform-icon">🍎</span> iOS 下载
+            </a>
+            <a href="#" class="btn btn-download">
+                <span class="platform-icon">🪟</span> Windows 下载
+            </a>
+            <a href="#" class="btn btn-download">
+                <span class="platform-icon">🍏</span> macOS 下载
+            </a>
+        </div>
+        <p class="download-note">* 下载链接即将更新，敬请期待。</p>
+    </section>
+
+    <footer>
+        <p>© 2026 redbbit. 保留所有权利。 | <a href="https://redbbit.github.io" class="footer-link">返回个人主页</a></p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
