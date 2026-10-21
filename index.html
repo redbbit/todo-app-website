@@ -76,21 +76,85 @@
     <section id="download" class="section fade-in">
         <h2 class="section-title">立即下载</h2>
         <p class="download-desc">选择你的设备，开始高效管理任务。</p>
+
+        <div class="version-badge">
+            <span class="vb-dot"></span> 当前版本 <strong>v1.5.1</strong>
+            <span class="vb-date">更新于 2026-10-22</span>
+        </div>
+
         <div class="download-buttons">
-            <a href="https://github.com/redbbit/todo-app-website/releases/download/v1.0.0/app-release.apk" class="btn btn-download" target="_blank">
-                <span class="platform-icon">🤖</span> Android 下载
+            <a href="https://github.com/redbbit/todo-app-website/releases/download/v1.5.1/TodoApp_Android_1.5.1.apk"
+               class="btn btn-download" target="_blank" rel="noopener">
+                <span class="platform-icon">🤖</span>
+                <span class="dl-text">Android 下载<em>APK · 65 MB · Android 8.0+</em></span>
             </a>
-            <a href="#" class="btn btn-download">
-                <span class="platform-icon">🍎</span> iOS 暂无下载
+            <a href="https://github.com/redbbit/todo-app-website/releases/download/v1.5.1/TodoApp_1.5.1_win64.zip"
+               class="btn btn-download" target="_blank" rel="noopener">
+                <span class="platform-icon">🪟</span>
+                <span class="dl-text">Windows 下载<em>ZIP 免安装 · 19 MB · 64 位</em></span>
             </a>
-            <a href="https://github.com/redbbit/todo-app-website/releases/download/v1.3.4/TodoApp_1.3.4.exe" class="btn btn-download" target="_blank">
-                <span class="platform-icon">🪟</span> Windows 下载
+            <a href="#" class="btn btn-download disabled" onclick="return false;">
+                <span class="platform-icon">🍎</span>
+                <span class="dl-text">iOS 暂无<em>开发中</em></span>
             </a>
-            <a href="#" class="btn btn-download">
-                <span class="platform-icon">🍏</span> macOS 暂无下载
+            <a href="#" class="btn btn-download disabled" onclick="return false;">
+                <span class="platform-icon">🍏</span>
+                <span class="dl-text">macOS 暂无<em>开发中</em></span>
             </a>
         </div>
-        <p class="download-note">* 下载链接没准更新，敬请期待，当然如果催的粉丝多的话。</p>
+
+        <!-- 手把手安装引导 -->
+        <div class="dl-guide">
+            <div class="dl-guide-col">
+                <h4 class="guide-title"><span class="platform-icon">🤖</span> Android 怎么装</h4>
+                <ol class="guide-steps">
+                    <li>点上面「Android 下载」，把 <code>TodoApp_Android_1.5.1.apk</code> 保存到手机。</li>
+                    <li>打开下载好的 APK。第一次安装会提示「未知来源应用」，选<strong>允许</strong>即可。</li>
+                    <li>不同品牌入口略有差别：
+                        <span class="guide-tip">小米：设置 → 隐私保护 → 特殊权限设置 → 安装未知应用；
+                        华为/荣耀：设置 → 安全 → 更多安全设置 → 安装未知应用；
+                        OPPO/vivo/三星：设置 → 应用管理 → 右上角菜单 → 特殊访问权限 → 安装未知应用。</span>
+                    </li>
+                    <li>装完打开，首次启动会问是否允许通知，建议<strong>允许</strong>，才有到期提醒和每日摘要。</li>
+                    <li>提示「有更新」时，可在 设置 → 关于 里直接下载新版覆盖安装，数据不会丢。</li>
+                </ol>
+            </div>
+            <div class="dl-guide-col">
+                <h4 class="guide-title"><span class="platform-icon">🪟</span> Windows 怎么装</h4>
+                <ol class="guide-steps">
+                    <li>点上面「Windows 下载」，得到 <code>TodoApp_1.5.1_win64.zip</code>。</li>
+                    <li>右键压缩包 → <strong>全部解压缩</strong>（建议解压到 <code>D:\TodoApp</code> 这类纯英文路径）。</li>
+                    <li>进解压出来的文件夹，双击 <code>TodoApp.exe</code> 就能用，<strong>不用安装、不写注册表</strong>。</li>
+                    <li>若 Windows 弹出蓝色「已保护你的电脑」：点<strong>更多信息</strong> → <strong>仍要运行</strong>（个人签名软件首次运行都会这样）。</li>
+                    <li>想放到任务栏/桌面：右键 <code>TodoApp.exe</code> → 发送到 → 桌面快捷方式。</li>
+                    <li>卸载直接删整个文件夹，数据存在你自己的数据目录里，不会被一起删掉。</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="dl-faq">
+            <details>
+                <summary>下载慢 / 下不动怎么办？</summary>
+                <p>安装包托管在 GitHub Releases。若直连慢，可复制下载链接到任意下载工具（如迅雷、Motrix、wget）里跑；或用手机热点换个网络再试。</p>
+            </details>
+            <details>
+                <summary>提示「文件可能有害」是正常的吗？</summary>
+                <p>正常。这是独立开发者未做付费代码签名的通用提示，不是病毒。Windows 端请点「更多信息 → 仍要运行」；若仍不放心，可用杀毒软件扫描后再运行。</p>
+            </details>
+            <details>
+                <summary>旧版本能直接覆盖升级吗？</summary>
+                <p>可以。Android 直接装新 APK；Windows 解压到新文件夹即可，两边数据都各自保留。<strong>建议升级前先在 设置 里做一次备份/同步。</strong></p>
+            </details>
+            <details>
+                <summary>手机和电脑能同步吗？</summary>
+                <p>可以，在同一局域网下通过 设置 → 同步 配对即可；两端都支持手动/自动同步同一份任务数据。</p>
+            </details>
+        </div>
+
+        <p class="download-note">
+            * v1.5.1 主要更新：问候语支持每日轮换 / 节日祝贺（含农历节日，可联网校准）/ 四种风格 / 自定义文案；
+            通知可自定义每日摘要时间；裁剪器新增视图缩放与实时预览；修复渐变过渡方向、裁剪框层级与本地升级无响应。
+        </p>
     </section>
 
     <footer>
