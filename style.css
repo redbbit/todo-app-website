@@ -151,7 +151,81 @@ h1, h2, h3, .logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; 
 }
 .btn-download:hover { border-color: var(--accent-color); color: var(--accent-color); transform: translateY(-3px); }
 .platform-icon { font-size: 1.2rem; }
-.download-note { text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+.download-note {
+    text-align: left; color: var(--text-muted); font-size: 0.85rem;
+    max-width: 860px; margin: 2rem auto 0; line-height: 1.7;
+}
+
+/* 版本徽标 */
+.version-badge {
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .5rem;
+    margin: -1.5rem auto 2.5rem; padding: .55rem 1.1rem; width: fit-content;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 999px;
+    font-size: .9rem; color: var(--text-muted);
+}
+.version-badge strong { color: var(--text-main); font-family: 'Space Grotesk', monospace; }
+.vb-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
+    box-shadow: 0 0 0 4px rgba(74, 222, 128, .18);
+}
+.vb-date { margin-left: .3rem; opacity: .75; font-size: .8rem; }
+
+/* 下载按钮：主标题 + 副标题 */
+.btn-download { align-items: center; text-align: left; line-height: 1.35; }
+.btn-download .dl-text { display: flex; flex-direction: column; }
+.btn-download .dl-text em {
+    font-style: normal; font-size: .75rem; color: var(--text-muted); margin-top: .25rem;
+}
+.btn-download:hover .dl-text em { color: inherit; opacity: .8; }
+.btn-download.disabled { opacity: .45; cursor: not-allowed; }
+.btn-download.disabled:hover { transform: none; border-color: var(--card-border); color: var(--text-main); }
+
+/* 安装引导 */
+.dl-guide {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    max-width: 980px; margin: 2.5rem auto 0;
+}
+.dl-guide-col {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 1.5rem 1.6rem;
+}
+.guide-title {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: 1.05rem; margin: 0 0 1rem; color: var(--text-main);
+}
+.guide-steps { margin: 0; padding-left: 1.2rem; }
+.guide-steps li {
+    font-size: .88rem; line-height: 1.75; color: var(--text-muted); margin-bottom: .7rem;
+}
+.guide-steps li::marker { color: var(--accent-color); font-weight: 700; }
+.guide-steps strong { color: var(--text-main); }
+.guide-steps code {
+    font-family: 'Space Grotesk', ui-monospace, monospace; font-size: .8rem;
+    background: rgba(255,255,255,.06); padding: .1rem .35rem; border-radius: 4px;
+    color: var(--text-main); word-break: break-all;
+}
+.guide-tip {
+    display: block; margin-top: .35rem; padding: .5rem .7rem;
+    background: rgba(255,255,255,.04); border-left: 2px solid var(--accent-color);
+    border-radius: 0 6px 6px 0; font-size: .8rem; line-height: 1.7;
+}
+
+/* 常见问题 */
+.dl-faq { max-width: 980px; margin: 1.5rem auto 0; }
+.dl-faq details {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 10px; padding: .85rem 1.1rem; margin-bottom: .7rem;
+}
+.dl-faq summary {
+    cursor: pointer; font-size: .9rem; color: var(--text-main); font-weight: 600;
+    list-style: none; display: flex; justify-content: space-between; align-items: center;
+}
+.dl-faq summary::-webkit-details-marker { display: none; }
+.dl-faq summary::after { content: '+'; color: var(--accent-color); font-size: 1.1rem; }
+.dl-faq details[open] summary::after { content: '−'; }
+.dl-faq details p {
+    margin: .7rem 0 0; font-size: .85rem; line-height: 1.75; color: var(--text-muted);
+}
 
 /* 页脚 */
 footer {
@@ -180,6 +254,8 @@ footer {
     .hero-buttons { flex-direction: column; width: 100%; }
     .btn { width: 100%; }
     .download-buttons { flex-direction: column; width: 100%; }
+    .dl-guide { grid-template-columns: 1fr; }
+    .download-note { text-align: center; }
 }
 
 /* 真实图片的样式 */
