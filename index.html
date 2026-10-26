@@ -163,5 +163,284 @@
     </footer>
 
     <script src="script.js"></script>
+<!-- FX32-START -->
+<style>
+/* == FX32-START == 与 每日简报 v3.6 同源的菱形拖尾 + 点击涟漪，注入块请勿手改 == */
+/* ===== 鼠标特效（v2.2）=====
+   菱形星点轨迹：5-11px 常规菱 + 偶发 13-17px 彗星菱（强辉光），同屏上限 40
+   鼠标处不放任何常驻图形
+   点击：菱形多层涟漪（见下），无任何圆形 */
+/* v3.5：星点不再用 box-shadow 做光晕。
+   blur 阴影每帧都要重新模糊，鼠标划快点就是十几颗同时在模糊，2x 屏上直接掉帧；
+   改用"提亮底色 + 一圈硬边"，观感接近，成本为零。 */
+/* v3.6：光晕仍不用 blur，但颜色回到珊瑚色域。
+   v3.5 让 glow/lite/comet 大量混白、comet 直接纯白，小尺寸下看起来就是一块灰白，
+   现在改成"主色 → 加一点白 → 浅粉"，全都在红粉轴上，深色底上不会再发灰 */
+.trail-star{position:fixed;top:0;left:0;border-radius:0;pointer-events:none;z-index:86;
+  background:var(--fx-accent,#ff6b6b);animation:starFade var(--life,.5s) ease-out forwards;
+  will-change:transform,opacity}
+.trail-star.glow{background:color-mix(in srgb,var(--fx-accent,#ff6b6b) 76%,#fff)}
+.trail-star.lite{background:color-mix(in srgb,var(--fx-accent,#ff6b6b) 52%,#fff)}
+.trail-star.comet{background:var(--fx-accent-lit,#ffa8a8);
+  box-shadow:0 0 0 1.5px color-mix(in srgb,var(--fx-accent,#ff6b6b) 52%,transparent)}
+@keyframes starFade{
+  from{transform:translate(0,0) rotate(var(--rot,45deg)) scale(0);opacity:0}
+  18%{transform:translate(calc(var(--dx)*.16),calc(var(--dy)*.16)) rotate(calc(var(--rot,45deg) + var(--spin,0deg)*.18)) scale(1);opacity:.85}
+  60%{opacity:.45}
+  to{transform:translate(var(--dx),var(--dy)) rotate(calc(var(--rot,45deg) + var(--spin,0deg))) scale(.12);opacity:0}
+}
+#top3Slot{perspective:700px}
+.top3.appear{transition:transform .2s var(--ease)}
+
+/* ===== 点击涟漪（v3.6 关自旋 + 预计算位移）=====
+   结构：中心实心菱（由小到大，撑满后淡出）→ 十字四芒
+        → 四道菱框（先大、再依次收到最紧，最后一起外扩）
+        → 两波菱形碎片：第一波 0ms（5 颗）、第二波 75ms（3 颗），全部 ≤6px，朝向固定着飞远（v3.6 关掉自旋）
+        → 细碎屑火花（同样两波 4 + 3）。
+   关键做法：
+   1) 菱框恒为 rotate(45deg)，内层 <i> 只做 transform:scale（v3.5 起不再用 width/height 动画，
+      那是每帧一次 layout + 描边重绘）；四道框用 --rd 依次延迟 0/.03/.06/.09s，
+      先"由里到外依次收紧"，再一起外扩；
+   2) 碎片轮廓用【非对称四边形】而不是标准钻石：四个顶点错开（50/0、100/44、48/100、0/56），
+      形状本身就是歪的，静止朝向也不会被看成方块；v3.6 起不再自旋，只保留固定的随机朝向 --a0；
+   3) 尺寸关键帧：.3 → 1.5（先变大一点）→ 之后单调减小到 0，同时透明度一路降；
+   4) 两波靠 --dl（0 / .075s）分开，波内各自再错峰 0~50ms，避免同步排成一圈；
+   5) 范围：菱框最大 92px，碎片最远 76px，整团约 80px 半径。 */
+.rip{position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:95;
+  contain:layout style}   /* v3.5：把重排/样式计算锁死在这棵子树里，不波及整页 */
+/* v3.5：全部动画元素提前声明 will-change，浏览器在点击瞬间就为它们各建一层合成层，
+   之后每帧只有 transform/opacity 变化，走合成器，不再逐帧重栅格化 clip-path 轮廓 */
+.rip>*{position:absolute;left:0;top:0;border-radius:0;opacity:0;will-change:transform,opacity}
+
+.rip-core{width:16px;height:16px;margin:-8px 0 0 -8px;
+  background:color-mix(in srgb,var(--fx-accent,#ff6b6b) 24%,#fff);
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+  animation:ripCore .32s cubic-bezier(.16,.86,.28,1) both}
+@keyframes ripCore{
+  0%{transform:scale(.16);opacity:0}
+  14%{opacity:1}
+  52%{transform:scale(1);opacity:1}
+  80%{transform:scale(1.12);opacity:1}   /* 一直保持满不透明，避免中途变成灰块 */
+  100%{transform:scale(1.3);opacity:0}}
+
+/* v3.5 大改：菱框不再用 width/height 动画。
+   旧做法每帧都改元素尺寸 = 每帧一次 layout + 一次描边重绘，2x 屏上就是肉眼可见的一顿一顿。
+   现在外层尺寸固定为最大尺寸 --w1、只负责定位和 45° 旋转，内层 <i> 只做 transform:scale，
+   全程走合成器；描边粗细随 scale 天然变化（收到最紧时线最细），比 border-width 动画还省。
+   scale 换算：--s0 = w0/w1（起始略大）、--sm = ws/w1（最紧）。 */
+.rip-ring{width:var(--w1,44px);height:var(--w1,44px);
+  /* opacity 必须在容器上放开：透明度动画已经交给内层 <i>，容器若仍继承 .rip>* 的 0 就整块隐形 */
+  opacity:1;
+  transform:translate(-50%,-50%) rotate(45deg)}
+.rip-ring>i{display:block;box-sizing:border-box;width:100%;height:100%;
+  border:var(--bw,1px) solid var(--fx-accent,#ff6b6b);
+  transform-origin:50% 50%;
+  /* 两段分开动：先各自按 --rd 依次收紧（both），再从 .43s 同时一起往外推
+     （forwards —— 若用 both，延迟期会 backwards 填成最紧尺寸，把第一段盖掉） */
+  animation:ringPull .34s cubic-bezier(.26,.6,.28,1) var(--rd,0s) both,
+            ringPush .3s cubic-bezier(.4,.66,.3,1) .43s forwards}
+.rip-ring.r2>i{border-color:color-mix(in srgb,var(--fx-accent,#ff6b6b) 34%,#fff)}
+.rip-ring.r3>i{border-style:dashed;border-color:var(--fx-accent,#ff6b6b)}
+.rip-ring.r4>i{border-color:color-mix(in srgb,var(--fx-accent,#ff6b6b) 55%,#fff)}
+/* 聚焦段：从略大的 s0 收到最紧的 sm，线同步变细 */
+@keyframes ringPull{
+  0%{transform:scale(var(--s0,1.09));opacity:0}
+  6%{opacity:var(--op,.92)}
+  100%{transform:scale(var(--sm,.61));opacity:var(--op,.92)}}
+/* 放开段：四道框同一时刻起跑，一起扩到 1 倍并淡出 */
+@keyframes ringPush{
+  0%{transform:scale(var(--sm,.61));opacity:var(--op,.92)}
+  100%{transform:scale(1);opacity:0}}
+/* 菱形碎片（两波共用同一套关键帧，靠 --dl 与尺寸/距离拉开层次）：
+   0% 从中心极小处起爆 → 20% 胀到 1.5 倍 → 之后一路缩着飞远淡出。
+   v3.6：自旋彻底关掉（原来每颗 70~140°，用户反馈整段飞散都在掉帧）。
+   rotate 只保留一个随机但固定的朝向 --a0，全程不变 —— 旋转量恒定后，
+   合成层里的纹理可以直接复用，不必逐帧重新栅格化这个 clip-path 轮廓。
+   位移的四段插值点改成预计算变量（--dx1/--dx2/--dx3 与对应 y），
+   关键帧里不再有 calc(var(--dx) * .45) 这种每帧重算的表达式。 */
+.rip-dia{background:color-mix(in srgb,var(--fx-accent,#ff6b6b) 42%,#fff);
+  clip-path:polygon(50% 0,100% 44%,48% 100%,0 56%);   /* 歪菱形：静止朝向也不会看成正方形 */
+  animation:ripDia var(--dur,.7s) cubic-bezier(.12,.7,.24,1) var(--dl,0s) both}
+@keyframes ripDia{
+  0%{transform:translate(0,0) rotate(var(--a0,0deg)) scale(.3);opacity:0}
+  5%{opacity:1}
+  20%{transform:translate(var(--dx1,0),var(--dy1,0)) rotate(var(--a0,0deg)) scale(1.5)}
+  48%{transform:translate(var(--dx2,0),var(--dy2,0)) rotate(var(--a0,0deg)) scale(1.05);opacity:.95}
+  76%{transform:translate(var(--dx3,0),var(--dy3,0)) rotate(var(--a0,0deg)) scale(.6);opacity:.7}
+  100%{transform:translate(var(--dx),var(--dy)) rotate(var(--a0,0deg)) scale(.02);opacity:0}}
+
+/* 中心四芒闪：点击瞬间的高光点，两根细光条十字交叉 */
+.rip-star{width:2px;height:30px;margin:-15px 0 0 -1px;
+  background:linear-gradient(to bottom,transparent,color-mix(in srgb,var(--fx-accent,#ff6b6b) 12%,#fff) 42%,
+    #fff 50%,color-mix(in srgb,var(--fx-accent,#ff6b6b) 12%,#fff) 58%,transparent);
+  animation:ripStar .32s cubic-bezier(.2,.8,.3,1) both}
+.rip-star.h{width:30px;height:2px;margin:-1px 0 0 -15px;
+  background:linear-gradient(to right,transparent,color-mix(in srgb,var(--fx-accent,#ff6b6b) 12%,#fff) 42%,
+    #fff 50%,color-mix(in srgb,var(--fx-accent,#ff6b6b) 12%,#fff) 58%,transparent)}
+@keyframes ripStar{
+  0%{transform:scale(.15);opacity:0}
+  28%{transform:scale(1);opacity:1}
+  100%{transform:scale(1.75);opacity:0}}
+
+/* 细碎屑：跟着两波碎片一起走，走得更快、散得更开一点 */
+.rip-spark{background:color-mix(in srgb,var(--fx-accent,#ff6b6b) 70%,#fff);
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+  animation:ripSpark .62s cubic-bezier(.14,.68,.3,1) var(--dl,0s) both}
+@keyframes ripSpark{
+  0%{transform:translate(0,0) rotate(0deg) scale(.5);opacity:0}
+  12%{opacity:.95}
+  100%{transform:translate(var(--dx),var(--dy)) rotate(16deg) scale(.12);opacity:0}}
+
+/* 浅色底上珊瑚色线条偏淡：v3.3 起不再给整个 .rip 套 filter
+   （对 20 多个节点的子树整体做滤镜，每次点击都要重建离屏缓冲，一按就掉帧），
+   改成给各元素底色直接混深色，观感一致但零额外开销 */
+html[data-theme="light"] .rip-ring>i{border-color:color-mix(in srgb,var(--fx-accent,#ff6b6b) 84%,#16181d)}
+html[data-theme="light"] .rip-star{opacity:.9}
+html[data-theme="light"] .rip-core{background:color-mix(in srgb,var(--fx-accent,#ff6b6b) 62%,#fff)}
+html[data-theme="light"] .rip-dia{background:color-mix(in srgb,var(--fx-accent,#ff6b6b) 78%,#fff)}
+html[data-theme="light"] .rip-spark{background:color-mix(in srgb,var(--fx-accent,#ff6b6b) 80%,#fff)}
+</style>
+<script>
+  /* ================= 鼠标特效（v2.1） =================
+     菱形星点轨迹：常规菱 5-11px + 偶发彗星菱 13-17px（强辉光）
+     鼠标处不放任何常驻图形（v2.1 移除跟随光点与两颗环绕卫星菱）
+     点击涟漪（v3.3）：中心实心菱 → 十字四芒 → 四道菱框 → 两波菱形碎片（0ms / 75ms）→ 细碎屑
+     粒子总数从 37 砍到 22（碎片 16→8、碎屑 14→7、星点上限 40→24），并去掉碎片上的 drop-shadow
+     性能约定：全程只有一个 document mousemove（passive）；
+     prefers-reduced-motion 下整体关闭。 */
+(function(){
+  'use strict';
+  function initFX(){
+    var N_MAX_STARS = 24;
+    var lastStarX = -99, lastStarY = -99, lastMoveT = 0, streak = 0, starCount = 0;
+
+    /* 单一 mousemove：只做星点散落，热路径不额外挂监听 */
+    document.addEventListener('mousemove', function(e){
+      var tx = e.clientX, ty = e.clientY;
+      var now = performance.now();
+      streak = (now - lastMoveT < 180) ? streak + 1 : 0;
+      lastMoveT = now;
+      var gap = Math.max(4, 10 - streak*.15) * (.55 + Math.random()*.9);
+      var mdx = tx - lastStarX, mdy = ty - lastStarY;
+      if(mdx*mdx + mdy*mdy > gap*gap && starCount < N_MAX_STARS){
+        lastStarX = tx; lastStarY = ty;
+        var s = document.createElement('div');
+        var roll = Math.random();
+        var comet = roll < .08;
+        var lite = !comet && roll < .22;
+        s.className = 'trail-star' + (comet ? ' comet' : (Math.random() < .3 ? ' glow' : (lite ? ' lite' : '')));
+        var sr = comet ? (13 + Math.random()*4) : (5 + Math.random()*6);
+        var side = Math.random() < .5 ? -1 : 1;
+        var nx = -mdy, ny = mdx;
+        var nl = Math.sqrt(nx*nx + ny*ny) || 1;
+        var off = 4 + Math.random()*5;
+        var r2 = Math.random();
+        var life = comet ? (.8 + Math.random()*.5) : (r2 < .62 ? (.24 + Math.random()*.26) : r2 < .9 ? (.55 + Math.random()*.3) : (1 + Math.random()*.35));
+        s.style.width = s.style.height = sr.toFixed(1) + 'px';
+        s.style.left = (tx - sr/2 + nx/nl*off*side).toFixed(1) + 'px';
+        s.style.top = (ty - sr/2 + ny/nl*off*side).toFixed(1) + 'px';
+        s.style.setProperty('--life', life.toFixed(2) + 's');
+        s.style.setProperty('--rot', [45,135,225,315][Math.floor(Math.random()*4)] + 'deg');
+        s.style.setProperty('--spin', (Math.random() < .5 ? -1 : 1) * (60 + Math.random()*360).toFixed(0) + 'deg');
+        s.style.setProperty('--dx', (Math.random()*12 - 6).toFixed(1) + 'px');
+        s.style.setProperty('--dy', (Math.random()*12 - 6).toFixed(1) + 'px');
+        document.body.appendChild(s);
+        starCount++;
+        s.addEventListener('animationend', function(){ s.remove(); starCount--; });
+      }
+    }, {passive:true});
+
+    /* 点击涟漪（v3.3）：中心实心菱 + 十字四芒 + 四道聚焦式菱框 + 两波菱形碎片（0ms / 75ms，5 + 3，均 ≤6px）+ 7 细碎屑 */
+    document.addEventListener('click', function(e){
+      /* 连点时最多同时保留 2 团，超出的先清掉：否则一次狂点会叠出几十层，帧率直线下滑 */
+      var live = document.querySelectorAll('.rip');
+      if(live.length >= 2){ for(var q = 0; q < live.length - 1; q++){ live[q].remove(); } }
+      var r = document.createElement('div');
+      r.className = 'rip';
+      r.style.left = e.clientX + 'px';
+      r.style.top = e.clientY + 'px';
+      var i;
+
+      function add(cls, vars){
+        var d = document.createElement('div');
+        d.className = cls;
+        if(vars){ for(var k in vars){ d.style.setProperty(k, vars[k]); } }
+        r.appendChild(d);
+        return d;
+      }
+      function rnd(a, b){ return a + Math.random() * (b - a); }
+
+      /* ① 菱形光斑 + 中心四芒闪 */
+      add('rip-core');
+      add('rip-star');
+      add('rip-star h');
+
+      /* ② 四道菱框：由里到外依次收紧（--rd 错峰 0/.04/.08/.12s），再一起往外推
+            w0 略大于 w1、ws 收到八成，形成"聚焦 → 放开"的呼吸 */
+      /* 四道框：外层尺寸固定为最大尺寸 w1，内层 <i> 只做 scale（s0 = w0/w1 → sm = ws/w1 → 1）
+         v3.5 起不再改 width/height，避免每帧重排重绘 */
+      function addRing(cls, w1, w0, ws, op, bw, rd){
+        var g = add(cls, {
+          '--w1': w1 + 'px', '--s0': (w0 / w1).toFixed(3), '--sm': (ws / w1).toFixed(3),
+          '--op': op, '--bw': bw + 'px', '--rd': rd
+        });
+        g.appendChild(document.createElement('i'));
+      }
+      addRing('rip-ring',    44, 48, 27, '1',   1.8, '0s');
+      addRing('rip-ring r2', 60, 66, 37, '.84', 1.2, '.03s');
+      addRing('rip-ring r3', 74, 80, 46, '.62', 1,   '.06s');
+      addRing('rip-ring r4', 88, 92, 55, '.5',  1,   '.09s');
+
+      /* ③ 两波菱形碎片：第一波 0ms 起爆（5 颗，大而飞得远），第二波 75ms 跟上（3 颗，小而转得多）
+            v3.3 把粒子砍半（16 → 8）：角度均分 + 抖动 + 距离带拉开，8 颗已经足够铺满一圈，
+            再多只是互相重叠、互相抢电机 */
+      for(i = 0; i < 8; i++){
+        var w2 = i >= 5;
+        var n = w2 ? 3 : 5;
+        var idx = w2 ? i - 5 : i;
+        var ang = (Math.PI * 2 / n) * idx + (w2 ? Math.PI / n : 0) + rnd(-.34, .34);
+        var dist = w2 ? rnd(40, 62) : rnd(52, 76);
+        /* 位移的四个插值点预先算好：关键帧里只写 var()，省掉每帧重算 calc */
+        var dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist;
+        var d = add('rip-dia', {
+          '--dl': ((w2 ? .075 : 0) + rnd(0, w2 ? .045 : .05)).toFixed(3) + 's',
+          '--dur': rnd(w2 ? .72 : .66, w2 ? .8 : .74).toFixed(2) + 's',
+          '--dx': dx.toFixed(1) + 'px', '--dy': dy.toFixed(1) + 'px',
+          '--dx1': (dx * .45).toFixed(1) + 'px', '--dy1': (dy * .45).toFixed(1) + 'px',
+          '--dx2': (dx * .8).toFixed(1) + 'px',  '--dy2': (dy * .8).toFixed(1) + 'px',
+          '--dx3': (dx * .95).toFixed(1) + 'px', '--dy3': (dy * .95).toFixed(1) + 'px',
+          /* 只有固定朝向，没有自旋：朝向在 45°±32° 内抖动。
+             以前是全角度随机，转到 0/90/180 附近时这颗四边形看起来就是个方块；
+             锁在 45° 附近，每颗都是"斜着的菱形"，朝向仍有变化但不会再方块化 */
+          '--a0': (45 + rnd(-32, 32)).toFixed(0) + 'deg'
+        });
+        var sz = w2 ? rnd(3.4, 4.6) : rnd(4.6, 6);
+        d.style.width = d.style.height = sz.toFixed(1) + 'px';
+        d.style.margin = (-sz/2).toFixed(1) + 'px 0 0 ' + (-sz/2).toFixed(1) + 'px';
+      }
+
+      /* ④ 细碎屑：同样两波（0ms 4 颗 / 75ms 3 颗），走得更快、散得更开 */
+      for(i = 0; i < 7; i++){
+        var s2 = i >= 4;
+        var a2 = Math.random() * Math.PI * 2, d2 = s2 ? rnd(34, 56) : rnd(44, 74);
+        var sp = add('rip-spark', {
+          '--dl': s2 ? '.075s' : '0s',
+          '--dx': (Math.cos(a2) * d2).toFixed(1) + 'px',
+          '--dy': (Math.sin(a2) * d2).toFixed(1) + 'px'
+        });
+        var ss = s2 ? rnd(1.8, 2.6) : rnd(2.2, 3.2);
+        sp.style.width = sp.style.height = ss.toFixed(1) + 'px';
+        sp.style.margin = (-ss/2).toFixed(1) + 'px 0 0 ' + (-ss/2).toFixed(1) + 'px';
+      }
+
+      document.body.appendChild(r);
+      setTimeout(function(){ r.remove(); }, 1050);
+    });
+  }
+  var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduced){ initFX(); }
+})();
+</script>
+<!-- FX32-END -->
 </body>
 </html>
